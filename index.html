@@ -22,6 +22,7 @@
 <body>
     <div id="content">
         <div id="clock">0:00:00</div>
+        <canvas id="canvas" width="700" height="50"></canvas>
         <div id="subtitle">&nbsp;</div>
     </div>
 </body>
@@ -56,7 +57,101 @@
         }
     }
 
+    // RENDER
+
     function render() {
+        const dates = getDates();
+        const now = dates.now;
+        const start = dates.start;
+        const end = dates.end;
+        const breakStart = dates.breakStart;
+        const breakEnd = dates.breakEnd;
+
+        if (end.getTime() < now.getTime() || now.getTime() < (start.getTime() - 2 * 60 * 60 * 1000)) {
+            document.getElementById("clock").innerText = '0:00:00';
+            document.getElementById("subtitle").innerHTML = "Work is over.";
+        } else if (now.getTime() < start.getTime()) {
+            const firstBlock = getTimeDiff(start, breakStart);
+            const secondBlock = getTimeDiff(breakEnd, end);
+            const t = {
+                h: firstBlock.h + secondBlock.h,
+                m: firstBlock.m + secondBlock.m,
+                s: firstBlock.s + secondBlock.s
+            }
+            if (t.s > 60) {
+                t.m += 1;
+                t.s -= 60;
+            }
+            if (t.m > 60) {
+                t.h += 1;
+                t.m -= 60;
+            }
+
+            document.getElementById("clock").innerText = timeDiffToStr(t);
+            document.getElementById("subtitle").innerHTML = `Get ready to start in ${timeDiffToStr(getTimeDiff(now, start))}.`;
+        } else if (now.getTime() > breakStart.getTime() && now.getTime() < breakEnd.getTime()) {
+            document.getElementById("clock").innerHTML = timeDiffToStr(getTimeDiff(breakEnd, end));
+            document.getElementById("subtitle").innerHTML = `Take a break for ${timeDiffToStr(getTimeDiff(now, breakEnd))}.`;
+        } else {
+            const t = getTimeDiff(now, end);
+
+            if (now.getTime() < breakStart.getTime()) {
+                const b = getTimeDiff(breakStart, breakEnd)
+                t.h -= b.h;
+                t.m -= b.m;
+            }
+
+            document.getElementById("clock").innerHTML = timeDiffToStr(t);
+            document.getElementById("subtitle").innerHTML = "&nbsp;";
+        }
+
+    }
+
+    function renderCanvas() {
+        const canvas = document.getElementById('canvas');
+
+        const width = 600;
+        const padding = (canvas.width - width) / 2;
+        const dates = getDates();
+
+        if (canvas.getContext) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgb(155, 155, 155)';
+            ctx.fillRect(padding, 10, width, 2);
+
+            ctx.fillStyle = 'rgb(105, 105, 105)';
+            ctx.fillRect(padding, 5, 1, 10);
+            ctx.fillRect(width + padding, 5, 1, 10);
+
+            const total = getTimeDiff(dates.start, dates.end);
+            const hourPixels = width / (total.h + (total.m / 60));
+            let minutePadLeft = hourPixels - ((dates.start.getMinutes() / 60) * hourPixels);
+            if (minutePadLeft === hourPixels) {
+                minutePadLeft = 0;
+            }
+
+            const hourMarkers = Math.floor((width - minutePadLeft) / hourPixels);
+            for(let i = 0; i < hourMarkers; i++) {
+                ctx.fillRect(padding + minutePadLeft + (i * hourPixels), 10, 1, 5);
+            }
+
+            const timePerc = getTimePercent(dates);
+            const x = (width * timePerc) + padding;
+
+            ctx.beginPath();
+            ctx.moveTo(x, 20);
+            ctx.lineTo(x-4, 27);
+            ctx.lineTo(x+4, 27);
+            ctx.fill();
+        }
+    }
+
+
+    // HELPER
+
+    function getDates() {
         const now = new Date();
         if (config.debug.now.hour >= 0) {
             now.setHours(config.debug.now.hour);
@@ -85,39 +180,22 @@
         breakEnd.setMinutes(config.break.end.minute);
         breakEnd.setSeconds(0);
 
-
-
-        const breakDiff = breakEnd.getTime() - breakStart.getTime();
-        const breakDiffDate = new Date(breakDiff);
-        const breakHours = breakDiffDate.getHours() - 1;
-        const breakMinutes = breakDiffDate.getMinutes();
-        //console.log(breakHours + ":" + breakMinutes);
-
-
-        if (end.getTime() < now.getTime() || now.getTime() < (start.getTime() - 2 * 60 * 60 * 1000)) {
-            document.getElementById("clock").innerText = '0:00:00';
-            document.getElementById("subtitle").innerHTML = "Work is over.";
-        } else if (now.getTime() < start.getTime()) {
-            document.getElementById("clock").innerText = '8:00:00';
-            document.getElementById("subtitle").innerHTML = `Get ready to start in ${timeLeftToStr(timeLeft(now, start))}.`;
-        } else if (now.getTime() > breakStart.getTime() && now.getTime() < breakEnd.getTime()) {
-            document.getElementById("clock").innerHTML = `4:00:00`;
-            document.getElementById("subtitle").innerHTML = `Take a break for ${timeLeftToStr(timeLeft(now, breakEnd))}.`;
-        } else {
-            const t = timeLeft(now, end);
-
-            if (now.getTime() < breakStart.getTime()) {
-                t.h -= breakHours;
-                t.m -= breakMinutes;
-            }
-
-            document.getElementById("clock").innerHTML = timeLeftToStr(t);
-            document.getElementById("subtitle").innerHTML = "&nbsp;";
-        }
-
+        return { now, start, end, breakStart, breakEnd }
     }
 
-    function timeLeft(fromDate, toDate) {
+    function getTimePercent(dates) {
+        const a = (dates.end.getTime() - dates.start.getTime());
+        const b = (dates.now.getTime() - dates.start.getTime());
+        let timePerc = 1 / a * b;
+        if (timePerc > 1) {
+            timePerc = 1;
+        } else if (timePerc < 0) {
+            timePerc = 0;
+        }
+        return timePerc
+    }
+
+    function getTimeDiff(fromDate, toDate) {
         const diff = toDate.getTime() - fromDate.getTime();
         const diffDate = new Date(diff);
 
@@ -128,13 +206,18 @@
         return { h, m, s};
     }
 
-    function timeLeftToStr(obj) {
+    function timeDiffToStr(obj) {
         return `${(obj.h + "")}:${(obj.m + "").padStart(2, "0")}:${(obj.s + "").padStart(2, "0")}`
     }
 
+
+    // MAIN
+
     render();
+    renderCanvas();
     setInterval(() => {
         render();
+        renderCanvas();
     }, 500)
 </script>
 </html>
