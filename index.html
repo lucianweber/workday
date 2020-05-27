@@ -132,6 +132,7 @@
         return `${(obj.h + "")}:${(obj.m + "").padStart(2, "0")}:${(obj.s + "").padStart(2, "0")}`
     }
 
+    render();
     setInterval(() => {
         render();
     }, 500)
