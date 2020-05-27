@@ -15,7 +15,7 @@
             font-size: 160px;
         }
         #subtitle {
-            font-size: 60px;
+            font-size: 40px;
         }
     </style>
 </head>
@@ -86,8 +86,6 @@
         breakEnd.setSeconds(0);
 
 
-        const diff = end.getTime() - now.getTime();
-        const diffDate = new Date(diff);
 
         const breakDiff = breakEnd.getTime() - breakStart.getTime();
         const breakDiffDate = new Date(breakDiff);
@@ -96,29 +94,42 @@
         //console.log(breakHours + ":" + breakMinutes);
 
 
-        if (diff <= 0 || now.getTime() < (start.getTime() - 2 * 60 * 60 * 1000)) {
+        if (end.getTime() < now.getTime() || now.getTime() < (start.getTime() - 2 * 60 * 60 * 1000)) {
             document.getElementById("clock").innerText = '0:00:00';
             document.getElementById("subtitle").innerHTML = "Work is over.";
         } else if (now.getTime() < start.getTime()) {
-            document.getElementById("clock").innerText = '9:00:00';
-            document.getElementById("subtitle").innerHTML = "Get ready to start";
+            document.getElementById("clock").innerText = '8:00:00';
+            document.getElementById("subtitle").innerHTML = `Get ready to start in ${timeLeftToStr(timeLeft(now, start))}.`;
         } else if (now.getTime() > breakStart.getTime() && now.getTime() < breakEnd.getTime()) {
             document.getElementById("clock").innerHTML = `4:00:00`;
-            document.getElementById("subtitle").innerHTML = "break";
+            document.getElementById("subtitle").innerHTML = `Take a break for ${timeLeftToStr(timeLeft(now, breakEnd))}.`;
         } else {
-            let h = ((diffDate.getHours() - 1) + "");
-            let m = (diffDate.getMinutes() + "").padStart(2, "0");
-            let s = (diffDate.getSeconds() + "").padStart(2, "0");
+            const t = timeLeft(now, end);
 
             if (now.getTime() < breakStart.getTime()) {
-                h -= breakHours;
-                m -= breakMinutes;
+                t.h -= breakHours;
+                t.m -= breakMinutes;
             }
 
-            document.getElementById("clock").innerHTML = `${h}:${m}:${s}`;
+            document.getElementById("clock").innerHTML = timeLeftToStr(t);
             document.getElementById("subtitle").innerHTML = "&nbsp;";
         }
 
+    }
+
+    function timeLeft(fromDate, toDate) {
+        const diff = toDate.getTime() - fromDate.getTime();
+        const diffDate = new Date(diff);
+
+        const h = diffDate.getHours() - 1;
+        const m = diffDate.getMinutes();
+        const s = diffDate.getSeconds();
+
+        return { h, m, s};
+    }
+
+    function timeLeftToStr(obj) {
+        return `${(obj.h + "")}:${(obj.m + "").padStart(2, "0")}:${(obj.s + "").padStart(2, "0")}`
     }
 
     setInterval(() => {
