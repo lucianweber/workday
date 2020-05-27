@@ -5,6 +5,8 @@
         body {
             background-color: antiquewhite;
             color: dimgray;
+            padding: 0;
+            margin: 0;
         }
         #content {
             text-align: center;
@@ -17,7 +19,39 @@
         #subtitle {
             font-size: 40px;
         }
+        #config {
+            border-top: 1px solid rgb(155, 155, 155);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            user-select: none;
+            height: 40px;
+            padding-top: 6px;
+        }
+        #config-btn {
+            display: inline-block;
+            text-align: center;
+            width: 30px;
+            cursor: pointer;
+        }
+        #config-inner {
+            text-align: center;
+            display: inline-block;
+            width: calc(100% - 50px);
+        }
+        .timeInput {
+            width: 80px;
+            margin-right: 20px;
+        }
+
+        #config.hide {
+            border: none;
+        }
+        #config.hide > #config-inner {
+            visibility: hidden;
+        }
     </style>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 </head>
 <body>
     <div id="content">
@@ -25,10 +59,31 @@
         <canvas id="canvas" width="700" height="50"></canvas>
         <div id="subtitle">&nbsp;</div>
     </div>
+    <div id="config" class="hide">
+        <div id="config-btn" onclick="toggleConfig()"><i class="fa fa-cog" aria-hidden="true"></i></div>
+        <div id="config-inner">
+            <label>
+                Work Start:
+                <input class="timeInput" type="text" placeholder="9:00" onchange="updateConfig()" id="input-start"/>
+            </label>
+            <label>
+                Work End:
+                <input class="timeInput" type="text" placeholder="18:00" onchange="updateConfig()" id="input-end"/>
+            </label>
+            <label>
+                Break Start:
+                <input class="timeInput" type="text" placeholder="13:00" onchange="updateConfig()" id="input-breakstart"/>
+            </label>
+            <label>
+                Break End:
+                <input class="timeInput" type="text" placeholder="14:00" onchange="updateConfig()" id="input-breakend"/>
+            </label>
+        </div>
+    </div>
 </body>
 
 <script>
-    const config = {
+    let config = {
         work: {
             start: {
                 hour: 9,
@@ -78,11 +133,11 @@
                 m: firstBlock.m + secondBlock.m,
                 s: firstBlock.s + secondBlock.s
             }
-            if (t.s > 60) {
+            if (t.s >= 60) {
                 t.m += 1;
                 t.s -= 60;
             }
-            if (t.m > 60) {
+            if (t.m >= 60) {
                 t.h += 1;
                 t.m -= 60;
             }
@@ -211,8 +266,62 @@
     }
 
 
+    // CLICK
+
+    function toggleConfig() {
+        document.querySelector("#config").classList.toggle("hide");
+    }
+
+
+    // DATA
+
+    function loadConfig() {
+        const cStr = localStorage.getItem("config")
+        if (typeof cStr === "string") {
+            try {
+                const c = JSON.parse(cStr);
+                config = Object.assign(config, c);
+            } catch (e) {
+            }
+        }
+        document.querySelector('#input-start').value = config.work.start.hour + ":" + (config.work.start.minute + "").padStart(2, "0");
+        document.querySelector('#input-end').value = config.work.end.hour + ":" + (config.work.end.minute + "").padStart(2, "0");
+        document.querySelector('#input-breakstart').value = config.break.start.hour + ":" + (config.break.start.minute + "").padStart(2, "0");
+        document.querySelector('#input-breakend').value = config.break.end.hour + ":" + (config.break.end.minute + "").padStart(2, "0");
+    }
+
+    function updateConfig() {
+        const start = document.querySelector('#input-start').value.split(":");
+        const end = document.querySelector('#input-end').value.split(":");
+        const breakstart = document.querySelector('#input-breakstart').value.split(":");
+        const breakend = document.querySelector('#input-breakend').value.split(":");
+
+        if (start.length === 2) {
+            config.work.start.hour = parseInt(start[0], 10);
+            config.work.start.minute = parseInt(start[1], 10);
+        }
+        if (end.length === 2) {
+            config.work.end.hour = parseInt(end[0], 10);
+            config.work.end.minute = parseInt(end[1], 10);
+        }
+        if (breakstart.length === 2) {
+            config.break.start.hour = parseInt(breakstart[0], 10);
+            config.break.start.minute = parseInt(breakstart[1], 10);
+        }
+        if (breakend.length === 2) {
+            config.break.end.hour = parseInt(breakend[0], 10);
+            config.break.end.minute = parseInt(breakend[1], 10);
+        }
+
+        const c = Object.assign({}, config);
+        c.debug = undefined;
+        localStorage.setItem("config", JSON.stringify(c))
+    }
+
+
     // MAIN
 
+    loadConfig();
     render();
     renderCanvas();
     setInterval(() => {
