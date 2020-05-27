@@ -1,0 +1,117 @@
+<html>
+<head>
+    <title>Countdown</title>
+    <style>
+        body {
+            background-color: antiquewhite;
+            color: dimgray;
+        }
+        #content {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 30vh;
+        }
+        #clock {
+            font-size: 160px;
+        }
+        #subtitle {
+            font-size: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <div id="clock">0:00:00</div>
+        <div id="subtitle">&nbsp;</div>
+    </div>
+</body>
+
+<script>
+    const config = {
+        work: {
+            start: {
+                hour: 9,
+                minute: 0
+            },
+            end: {
+                hour: 18,
+                minute: 0
+            }
+        },
+        break: {
+            start: {
+                hour: 13,
+                minute: 0
+            },
+            end: {
+                hour: 14,
+                minute: 0
+            }
+        }
+    }
+
+    function render() {
+        const now = new Date();
+        //now.setHours(13);
+        const start = new Date();
+        const end = new Date();
+        const breakStart = new Date();
+        const breakEnd = new Date();
+
+        start.setHours(config.work.start.hour);
+        start.setMinutes(config.work.start.minute);
+        start.setSeconds(0);
+
+        end.setHours(config.work.end.hour);
+        end.setMinutes(config.work.end.minute);
+        end.setSeconds(0);
+
+        breakStart.setHours(config.break.start.hour);
+        breakStart.setMinutes(config.break.start.minute);
+        breakStart.setSeconds(0);
+
+        breakEnd.setHours(config.break.end.hour);
+        breakEnd.setMinutes(config.break.end.minute);
+        breakEnd.setSeconds(0);
+
+
+        const diff = end.getTime() - now.getTime();
+        const diffDate = new Date(diff);
+
+        const breakDiff = breakEnd.getTime() - breakStart.getTime();
+        const breakDiffDate = new Date(breakDiff);
+        const breakHours = breakDiffDate.getHours() - 1;
+        const breakMinutes = breakDiffDate.getMinutes();
+        //console.log(breakHours + ":" + breakMinutes);
+
+
+        if (diff <= 0 || now.getTime() < (start.getTime() - 2 * 60 * 60 * 1000)) {
+            document.getElementById("clock").innerText = '0:00:00';
+            document.getElementById("subtitle").innerHTML = "Work is over.";
+        } else if (now.getTime() < start.getTime()) {
+            document.getElementById("clock").innerText = '9:00:00';
+            document.getElementById("subtitle").innerHTML = "Get ready to start";
+        } else if (now.getTime() > breakStart.getTime() && now.getTime() < breakEnd.getTime()) {
+            document.getElementById("clock").innerHTML = `4:00:00`;
+            document.getElementById("subtitle").innerHTML = "break";
+        } else {
+            let h = ((diffDate.getHours() - 1) + "");
+            let m = (diffDate.getMinutes() + "").padStart(2, "0");
+            let s = (diffDate.getSeconds() + "").padStart(2, "0");
+
+            if (now.getTime() < breakStart.getTime()) {
+                h -= breakHours;
+                m -= breakMinutes;
+            }
+
+            document.getElementById("clock").innerHTML = `${h}:${m}:${s}`;
+            document.getElementById("subtitle").innerHTML = "&nbsp;";
+        }
+
+    }
+
+    setInterval(() => {
+        render();
+    }, 500)
+</script>
+</html>
