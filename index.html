@@ -50,6 +50,16 @@
         #config.hide > #config-inner {
             visibility: hidden;
         }
+
+        #config.hide .fa-times {
+            display: none;
+        }
+        #config .fa-cog {
+            display: none;
+        }
+        #config.hide .fa-cog {
+            display: initial;
+        }
     </style>
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 </head>
@@ -60,7 +70,10 @@
         <div id="subtitle">&nbsp;</div>
     </div>
     <div id="config" class="hide">
-        <div id="config-btn" onclick="toggleConfig()"><i class="fa fa-cog" aria-hidden="true"></i></div>
+        <div id="config-btn" onclick="toggleConfig()">
+            <i class="fa fa-cog" aria-hidden="true"></i>
+            <i class="fa fa-times" aria-hidden="true"></i>
+        </div>
         <div id="config-inner">
             <label>
                 Work Start:
