@@ -192,7 +192,11 @@
                 ctx.fillRect(padding + minutePadLeft + (i * hourPixels), 10, 1, 5);
             }
 
-            const timePerc = getTimePercent(dates);
+            let timePerc = getTimePercent(dates);
+            if (dates.now.getTime() < (dates.start.getTime() - 2 * 60 * 60 * 1000)) {
+                timePerc = 1.0;
+            }
+
             const x = (width * timePerc) + padding;
 
             ctx.beginPath();
