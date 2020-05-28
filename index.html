@@ -20,13 +20,14 @@
             font-size: 40px;
         }
         #config {
-            border-top: 1px solid rgb(155, 155, 155);
             position: absolute;
             bottom: 0;
             width: 100%;
             user-select: none;
             height: 40px;
             padding-top: 6px;
+            background: lightgray;
+            box-shadow: 4px 4px 5px 6px #aaa;
         }
         #config-btn {
             display: inline-block;
@@ -46,6 +47,8 @@
 
         #config.hide {
             border: none;
+            box-shadow: none;
+            background: none;
         }
         #config.hide > #config-inner {
             visibility: hidden;
@@ -187,7 +190,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = 'rgb(155, 155, 155)';
-            ctx.fillRect(padding, 10, width, 2);
+            ctx.fillRect(padding, 10, width, 1);
 
             ctx.fillStyle = 'rgb(105, 105, 105)';
             ctx.fillRect(padding, 5, 1, 10);
