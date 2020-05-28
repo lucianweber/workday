@@ -1,5 +1,7 @@
 # workday
 
+![alt text](https://github.com/lucianweber/workday/blob/image/doc/workday.png?raw=true)
+
 [workday.netlify.app](https://workday.netlify.app)
 
 Working from home on your thesis can be hard if you don't structure your day. This is why I started setting timers on my phone to pressure my self to deliver. It helped me to focus on my thesis work and led me to build this website, which shows a countdown on the remaining time you have to get stuff done for today.
